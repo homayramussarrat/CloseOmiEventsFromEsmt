@@ -1,26 +1,30 @@
 #!/usr/bin/env pwsh
+
 Param(
     [Parameter(Mandatory = $false)]
     [string] $OmiUrl = "https://itsomi.tools.cihs.gov.on.ca",
 
-    [Parameter(Mandatory = $true)]
-    [string] $OmiUsername,
+    [Parameter(Mandatory = $false)]
+    [string] $OmiUsername = "admin",
 
-    [Parameter(Mandatory = $true)]
-    [securestring] $OmiPassword,
+    [Parameter(Mandatory = $false)]
+    [securestring] $OmiPassword = ("P@55w0rd" | ConvertTo-SecureString -AsPlainText -Force),
 
     [Parameter(Mandatory = $false)]
     [string] $ElixirUrl = "https://elixir-prod.tools.cihs.gov.on.ca",
 
-    [Parameter(Mandatory = $true)]
-    [string] $ClientId,
-
-    [Parameter(Mandatory = $true)]
-    [securestring] $ClientSecret,
+    [Parameter(Mandatory = $false)]
+    [string] $ClientId = "consumer-omi-service",
 
     [Parameter(Mandatory = $false)]
-    [switch] $CloseResolved
-)
+    [securestring] $ClientSecret = ("1f153266-6d74-4770-bb7c-8b821159b7dc" | ConvertTo-SecureString -AsPlainText -Force),
+
+    [Parameter(Mandatory = $false)]
+    [switch] $CloseResolved = $true
+) 
+
+
+
 try{
     $token =  Get-ITSToolsKeycloakToken -ClientId $ClientId -ClientSecret $ClientSecret -Refresh
 }catch{
@@ -75,6 +79,7 @@ foreach($event in $eventList.event_list.event){
         $headers["Content-Type"] = "application/xml"
         $headers["Accept"] = "application/xml"
         if($CloseResolved){
+            Start-Sleep -Seconds 5
             $eventUrl = "$EventListUrl/{0}" -f $event.id
             Write-Host "Closing $($event.id), $($IncidentValue), $($externalId),  $($incident.assignee), $($incident.assigned_group)" 
             Write-Output "Closing $($event.id), $($IncidentValue), $($externalId),  $($incident.assignee), $($incident.assigned_group)" | Out-File -append C:\temp\closeOmiIncidents.txt
